@@ -34,7 +34,7 @@ An MCP (Model Context Protocol) server that provides AI assistants with persiste
  
  You'll need:
  - **Supabase Project URL** (e.g., `https://xxxxx.supabase.co`)
- - **Supabase Anon/Public API Key**
+ - **Supabase Anon/Public API Key** (Select API Keys on left side, click legacy tab for key)
  
  ### 2. Configure MCP Client
  
