@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+*.tgz
 
 # Config files (contain secrets)
 .config/
