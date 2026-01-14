@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "supabase-memory": {
+      "command": "node",
+      "args": [
+        "c:\\mcpservers\\supabase-memory-mcp\\dist\\index.js"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
