@@ -1,13 +1,11 @@
 {
   "mcpServers": {
     "supabase-memory": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "c:\\mcpservers\\supabase-memory-mcp\\dist\\index.js"
-      ],
-      "env": {},
-      "disabled": false,
-      "autoApprove": []
+        "-y",
+        "@gsxrchris/supabase-memory"
+      ]
     }
   }
 }

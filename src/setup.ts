@@ -196,7 +196,10 @@ export async function runSetup() {
     }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Check if running directly (ESM compatible)
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (isMainModule) {
     runSetup().catch((error) => {
         console.error(chalk.red('Setup failed:'), error);
         process.exit(1);

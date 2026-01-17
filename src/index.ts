@@ -11,6 +11,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { getEmbedding } from "./embedding.js";
 import { getConfig } from "./config.js";
 import { runSetup } from "./setup.js";
+import { logger } from "./logger.js";
 
 // Check for setup command
 if (process.argv.includes('setup')) {
@@ -22,7 +23,7 @@ if (process.argv.includes('setup')) {
 const config = getConfig();
 
 if (!config) {
-    console.error("❌ Configuration not found. Please run 'npx @gsxrchris/supabase-memory setup'");
+    logger.error("Configuration not found. Please run 'npx @gsxrchris/supabase-memory setup' or configure environment variables.");
     process.exit(1);
 }
 
@@ -43,7 +44,6 @@ const server = new McpServer({
     name: "supabase-memory",
     version: "2.0.0",
 });
-
 
 /**
  * Format embedding array for Supabase pgvector
@@ -68,6 +68,7 @@ server.tool(
     },
     async ({ content, category, project_id, type, importance, metadata }) => {
         try {
+            logger.info(`Storing memory for project: ${project_id}`, { category, type });
             const embedding = await getEmbedding(content);
 
             const insertData = {
@@ -103,6 +104,7 @@ server.tool(
                 ],
             };
         } catch (error) {
+            logger.error(`Failed to store memory`, error);
             return {
                 content: [{ type: "text", text: `Error: ${String(error)}` }],
                 isError: true,
@@ -122,6 +124,7 @@ server.tool(
     },
     async ({ query, project_id, category, limit, similarity_threshold }) => {
         try {
+            logger.debug(`Searching memories`, { query, project_id });
             const queryEmbedding = await getEmbedding(query);
 
             const { data, error } = await supabase.rpc("match_memories", {
@@ -138,6 +141,7 @@ server.tool(
                 content: [{ type: "text", text: JSON.stringify({ success: true, results: data }, null, 2) }],
             };
         } catch (error) {
+            logger.error(`Search failed`, error);
             return {
                 content: [{ type: "text", text: `Error: ${String(error)}` }],
                 isError: true,
@@ -159,6 +163,7 @@ server.tool(
     },
     async ({ source_id, target_id, relation_type }) => {
         try {
+            logger.info(`Creating relation`, { source_id, target_id, relation_type });
             const { error } = await supabase
                 .from("memory_relations")
                 .insert({ source_id, target_id, relation_type });
@@ -166,6 +171,7 @@ server.tool(
             if (error) throw error;
             return { content: [{ type: "text", text: `Relation '${relation_type}' created between ${source_id} and ${target_id}` }] };
         } catch (error) {
+            logger.error(`Failed to create relation`, error);
             return { content: [{ type: "text", text: `Error: ${String(error)}` }], isError: true };
         }
     }
@@ -182,6 +188,7 @@ server.tool(
             if (error) throw error;
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         } catch (error) {
+            logger.error(`Failed to get related memories`, error);
             return { content: [{ type: "text", text: `Error: ${String(error)}` }], isError: true };
         }
     }
@@ -202,6 +209,7 @@ server.tool(
     },
     async ({ project_id, category, key, value, description }) => {
         try {
+            logger.info(`Setting structured memory`, { project_id, category, key });
             const { error } = await supabase.from("structured_memories").upsert(
                 { project_id, category, key, value, description },
                 { onConflict: 'project_id,category,key' }
@@ -209,6 +217,7 @@ server.tool(
             if (error) throw error;
             return { content: [{ type: "text", text: `Structured memory saved: ${category}.${key}` }] };
         } catch (error) {
+            logger.error(`Failed to set structured memory`, error);
             return { content: [{ type: "text", text: `Error: ${String(error)}` }], isError: true };
         }
     }
@@ -232,6 +241,7 @@ server.tool(
             if (error) return { content: [{ type: "text", text: "Not found" }] };
             return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
         } catch (error) {
+            logger.error(`Failed to get structured memory`, error);
             return { content: [{ type: "text", text: `Error: ${String(error)}` }], isError: true };
         }
     }
@@ -266,6 +276,7 @@ server.tool(
             if (error) throw error;
             return { content: [{ type: "text", text: `Short-term memory set: ${key}` }] };
         } catch (error) {
+            logger.error(`Failed to set short-term memory`, error);
             return { content: [{ type: "text", text: `Error: ${String(error)}` }], isError: true };
         }
     }
@@ -296,6 +307,7 @@ server.tool(
 
             return { content: [{ type: "text", text: JSON.stringify(data.value, null, 2) }] };
         } catch (error) {
+            logger.error(`Failed to get short-term memory`, error);
             return { content: [{ type: "text", text: `Error: ${String(error)}` }], isError: true };
         }
     }
@@ -324,7 +336,10 @@ server.tool(
         if (category) query = query.eq("category", category);
 
         const { data, error } = await query;
-        if (error) return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
+        if (error) {
+            logger.error("Failed to list memories", error);
+            return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
+        }
 
         return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
     }
@@ -335,7 +350,10 @@ server.tool(
     { memory_id: z.string(), project_id: z.string() },
     async ({ memory_id, project_id }) => {
         const { error } = await supabase.from("memories").delete().eq("id", memory_id).eq("project_id", project_id);
-        if (error) return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
+        if (error) {
+            logger.error(`Failed to delete memory ${memory_id}`, error);
+            return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
+        }
         return { content: [{ type: "text", text: "Memory deleted" }] };
     }
 );
@@ -346,7 +364,10 @@ server.tool(
     async ({ project_id }) => {
         // Just a simple count for now
         const { count, error } = await supabase.from("memories").select("*", { count: 'exact', head: true }).eq("project_id", project_id);
-        if (error) return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
+        if (error) {
+            logger.error(`Failed to get stats for ${project_id}`, error);
+            return { content: [{ type: "text", text: `Error: ${error.message}` }], isError: true };
+        }
         return { content: [{ type: "text", text: JSON.stringify({ total_memories: count }) }] };
     }
 );
@@ -354,11 +375,10 @@ server.tool(
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("🧠 Supabase Memory MCP Server v2.0 started");
+    logger.info("🧠 Supabase Memory MCP Server v2.0 started");
 }
 
 main().catch((error) => {
-    console.error("Failed to start MCP server:", error);
+    logger.error("Failed to start MCP server:", error);
     process.exit(1);
 });
-

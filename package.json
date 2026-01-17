@@ -1,6 +1,6 @@
 {
   "name": "@gsxrchris/supabase-memory",
-  "version": "1.0.5",
+  "version": "1.0.9",
   "description": "Enterprise-grade MCP server for semantic memory storage using Supabase with pgvector",
   "type": "module",
   "main": "dist/index.js",
@@ -19,8 +19,7 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "setup": "tsx src/setup.ts",
-    "postinstall": "node dist/setup.js || echo 'Run npm run setup to configure Supabase connection'"
+    "setup": "tsx src/setup.ts"
   },
   "keywords": [
     "mcp",

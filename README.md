@@ -29,7 +29,7 @@ An MCP (Model Context Protocol) server that provides AI assistants with a multi-
  The interactive setup will guide you through configuring your Supabase connection and creating the database schema:
  
  ```bash
- npx @gsxrchris/supabase-memory setup
+ npx --package @gsxrchris/supabase-memory supabase-memory setup
  ```
  
  You'll need:
@@ -47,7 +47,9 @@ An MCP (Model Context Protocol) server that provides AI assistants with a multi-
        "command": "npx",
        "args": [
          "-y",
-         "@gsxrchris/supabase-memory"
+         "--package",
+         "@gsxrchris/supabase-memory",
+         "supabase-memory"
        ]
      }
    }
