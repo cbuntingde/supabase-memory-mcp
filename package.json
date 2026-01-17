@@ -1,6 +1,6 @@
 {
   "name": "@gsxrchris/supabase-memory",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Enterprise-grade MCP server for semantic memory storage using Supabase with pgvector",
   "type": "module",
   "main": "dist/index.js",

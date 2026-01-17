@@ -24,20 +24,34 @@ An MCP (Model Context Protocol) server that provides AI assistants with a multi-
 
 ## Quick Start
 
- ### 1. Run Setup
+### For New Users
+
+ #### 1. Run Setup
  
  The interactive setup will guide you through configuring your Supabase connection and creating the database schema:
  
  ```bash
- npx --package @gsxrchris/supabase-memory supabase-memory setup
+  npx --package @gsxrchris/supabase-memory supabase-memory setup
  ```
+ 
+ ### 2. Configure MCP Client
  
  You'll need:
  - **Supabase Project URL** (e.g., `https://xxxxx.supabase.co`)
  - **Supabase Anon/Public API Key** (Select API Keys on left side, click legacy tab for key)
  
- ### 2. Configure MCP Client
- 
+### For Existing Users (Migration)
+
+If you're encountering errors like `"column 'type' does not exist"`, your database schema needs to be updated. Run the migration:
+
+1. Open your Supabase Dashboard at https://app.supabase.com
+2. Go to **SQL Editor** in the left sidebar
+3. Copy the contents of `migrations/add_missing_columns.sql`
+4. Paste and run the script
+
+This will add the `type` and `importance` columns to your existing `memories` table without affecting your existing data.
+
+### Configure MCP Client
  Add the server to your `mcp.json` or `claude_desktop_config.json`:
  
  ```json
